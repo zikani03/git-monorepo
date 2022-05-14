@@ -9,7 +9,7 @@ builds:
     - darwin
     - linux
   dir: .
-  main: ./cmd/main
+  main: ./cmd/main.go
 archives:
 - replacements:
     darwin: Darwin
