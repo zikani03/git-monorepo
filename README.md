@@ -14,7 +14,13 @@ Make Git monorepos like a boss.
 ### Create monorepo locally
 
 ```shell
-$ git monorepo init --sources gh:zikani03/articulated,gh:zikani03/pakadali --target toy-projects
+$ git-monorepo init --sources gh:zikani03/articulated,gh:zikani03/pakadali --target toy-projects
+```
+
+Or with full git urls:
+
+```shell
+$ git-monorepo init --sources https://github.com/nndi-oss/ussdproxy,gh:nndi-oss/ussd-whois,https://github.com/nndi-oss/dialoguss --target ussd-projects
 ```
 
 ## IDEAS / TODO
