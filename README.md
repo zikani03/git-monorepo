@@ -5,14 +5,9 @@ Make Git monorepos like a boss.
 
 ## Features
 
-- Preserve commit history
-- Make Submodules instead of mangling history
-- Parallel clones
-- Preserve Directory structure
+- Preserve commit history for each repo
+- Preserve Directory structure of each repo
 - Ordering Commits chronologically
-- Ordering Commits by source repo 
-- Lossy monorepo without full history of projects
-- Lossy monorepo with a `<repo>.commit.history` file 
 
 ## Usage
 
@@ -24,25 +19,19 @@ $ git monorepo init --preserve-history \
   --target toy-projects
 ```
 
-Or 
 
-```shell
-$ git monorepo init --preserve-history --github-username zikani03 --sources articulated,pakadali --target toy-projects
-```
 
-### Create monorepo locally and push to github
+## IDEAS / TODO
+
+- Make Submodules instead of mangling history
+- Parallel clones
+- Create monorepo locally and push to github
 
 ```shell
 $ git monorepo init --preserve-history \ 
   --sources gh:zikani03/articulated,gh:zikani03/pakadali \ 
   --target gh:zikani03/toy-projects \ 
   --github-token=$GH_TOKEN
-```
-
-Or 
-
-```shell
-$ git monorepo init --preserve-history --github-username zikani03 --sources articulated,pakadali --target gh:toy-projects
 ```
 
 ## CREDITS
