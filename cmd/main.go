@@ -31,7 +31,7 @@ type InitCmd struct {
 	Mangle          bool     `help:"Combine files from repos in one directory (not recommended!)"`
 	PreserveHistory bool     `help:"Preserve history from the repos"`
 	MakeSubmodules  bool     `help:"Add child repositories as submodules (not ideal!)"`
-	TargetDir       bool     `name:"target" help:"The target directory to create repo in. Must not exist" type:"path"`
+	TargetDir       string   `name:"target" help:"The target directory to create repo in. Must not exist" type:"path"`
 	Sources         []string `help:"Source repositories with support for 'git-down' shortcuts"`
 }
 
@@ -46,12 +46,8 @@ func CheckIfError(err error) {
 }
 
 func (r *InitCmd) Run(globals *Globals) error {
-
-	var repos []string
-	var targetDir string
-
-	repo := gitMonorepo.NewMonorepoFromSources(repos)
-	err := repo.Init(targetDir)
+	repo := gitMonorepo.NewMonorepoFromSources(r.Sources)
+	err := repo.Init(r.TargetDir)
 	CheckIfError(err)
 
 	return nil
