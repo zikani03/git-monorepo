@@ -8,6 +8,8 @@ builds:
     - windows
     - darwin
     - linux
+  dir: .
+  main: ./cmd/main
 archives:
 - replacements:
     darwin: Darwin
