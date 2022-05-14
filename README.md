@@ -14,12 +14,8 @@ Make Git monorepos like a boss.
 ### Create monorepo locally
 
 ```shell
-$ git monorepo init --preserve-history \ 
-  --sources gh:zikani03/articulated,gh:zikani03/pakadali \ 
-  --target toy-projects
+$ git monorepo init --sources gh:zikani03/articulated,gh:zikani03/pakadali --target toy-projects
 ```
-
-
 
 ## IDEAS / TODO
 
