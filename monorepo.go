@@ -38,6 +38,12 @@ func makeFullUrl(spec string) string {
 	if strings.HasPrefix(spec, "gh:") {
 		return strings.ReplaceAll(spec, "gh:", "https://github.com/")
 	}
+	if strings.HasPrefix(spec, "bb:") {
+		return strings.ReplaceAll(spec, "bb:", "https://bitbucket.org/")
+	}
+	if strings.HasPrefix(spec, "gl:") {
+		return strings.ReplaceAll(spec, "gl:", "https://gitlab.com/")
+	}
 
 	return spec
 }
