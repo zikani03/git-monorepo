@@ -68,7 +68,7 @@ func main() {
 	}
 
 	ctx := kong.Parse(&cli,
-		kong.Name("git-monopore"),
+		kong.Name("git-monorepo"),
 		kong.Description("Make monorepos from existing repositories"),
 		kong.UsageOnError(),
 		kong.ConfigureHelp(kong.HelpOptions{

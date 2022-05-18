@@ -7,6 +7,7 @@ import (
 	"path"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	billyfs "github.com/go-git/go-billy/v5/osfs"
@@ -56,32 +57,53 @@ func (m *Monorepo) Init(targetDir string) error {
 	return m.initWithCommitsBetween(targetDir, since, until)
 }
 
+type NamedRepository struct {
+	URL  string
+	Name string
+	Repo *git.Repository
+}
+
 func (m *Monorepo) initWithCommitsBetween(targetDir string, fromTime, toTime time.Time) error {
 	// commitSL := skiplist.New()
 	// This commit list could potentially be huuuge we need a good way to store it.
 	commitList := make([]*RepositoryCommit, 0)
 
 	worktreeDir := billyfs.New(targetDir)
+	repoCh := make(chan *NamedRepository, len(m.SourceRepositoryURLs))
+
+	var wg sync.WaitGroup
+	wg.Add(len(m.SourceRepositoryURLs))
 
 	for _, urlSpec := range m.SourceRepositoryURLs {
 		sourceRepositoryUrl := makeFullUrl(urlSpec)
-		repo, err := git.Clone(memory.NewStorage(), nil, &git.CloneOptions{
-			URL: sourceRepositoryUrl,
-		})
-		if err != nil {
-			return fmt.Errorf("failed to git clone %s : %v", sourceRepositoryUrl, err)
-		}
+		go func(url string) {
+			defer wg.Done()
+			repo, err := git.Clone(memory.NewStorage(), nil, &git.CloneOptions{
+				URL: url,
+			})
+			if err != nil {
+				fmt.Println(fmt.Errorf("failed to git clone %s : %v", url, err))
+				return
+			}
+			repositoryName := url[strings.LastIndex(sourceRepositoryUrl, "/"):]
+			repoCh <- &NamedRepository{url, repositoryName, repo}
+
+		}(sourceRepositoryUrl)
+	}
+
+	wg.Wait()
+	for r := range repoCh {
 		// retrieves the branch pointed by HEAD
-		repoRef, err := repo.Head()
+		repoRef, err := r.Repo.Head()
 		if err != nil {
 			return err
 		}
-		cIter, err := repo.Log(&git.LogOptions{From: repoRef.Hash(), Since: &fromTime, Until: &toTime})
+		cIter, err := r.Repo.Log(&git.LogOptions{From: repoRef.Hash(), Since: &fromTime, Until: &toTime})
 		if err != nil {
 			return err
 		}
 
-		repositoryName := sourceRepositoryUrl[strings.LastIndex(sourceRepositoryUrl, "/"):]
+		repositoryName := r.Name
 		repositoryName = strings.ReplaceAll(repositoryName, ".git", "")
 
 		err = cIter.ForEach(func(c *object.Commit) error {
@@ -92,7 +114,7 @@ func (m *Monorepo) initWithCommitsBetween(targetDir string, fromTime, toTime tim
 		})
 
 		if err != nil {
-			return fmt.Errorf("error during iterating commits for repo:%s : %v", sourceRepositoryUrl, err)
+			return fmt.Errorf("error during iterating commits for repo:%s : %v", r.URL, err)
 		}
 	}
 
