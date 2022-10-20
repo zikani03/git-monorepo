@@ -30,6 +30,7 @@ type InitCmd struct {
 	Daemonize       bool     `help:"Daemonize or run in foreground"`
 	Mangle          bool     `help:"Combine files from repos in one directory (not recommended!)"`
 	PreserveHistory bool     `help:"Preserve history from the repos"`
+	InMemory        bool     `help:"Clone repos in-memory instead of a temporary directory on file system"`
 	MakeSubmodules  bool     `help:"Add child repositories as submodules (not ideal!)"`
 	TargetDir       string   `name:"target" help:"The target directory to create repo in. Must not exist" type:"path"`
 	Sources         []string `help:"Source repositories with support for 'git-down' shortcuts"`
@@ -47,6 +48,9 @@ func CheckIfError(err error) {
 
 func (r *InitCmd) Run(globals *Globals) error {
 	repo := gitMonorepo.NewMonorepoFromSources(r.Sources)
+	if r.InMemory {
+		repo = gitMonorepo.NewMonorepoFromSourcesInMemory(r.Sources)
+	}
 	err := repo.Init(r.TargetDir)
 	CheckIfError(err)
 

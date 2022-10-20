@@ -1,15 +1,28 @@
 git-monorepo
 ============
 
-Make Git monorepos like a boss.
+> Make Git monorepos like a boss.
+
+`git-monorepo` is a tool that allows you to combine two or more Git repositories into one repository and preserves the commit history for each repo as well as the directory structure.
 
 ## Features
 
-- Preserve commit history for each repo
-- Preserve Directory structure of each repo
-- Ordering Commits chronologically
+- Preserves commit history for each repo
+- Preserves Directory structure of each repo
+- Orders Commits chronologically
+
+## Building
+
+git-monorepo requires atleast Go 1.18 to build. 
+
+```sh
+$ git clone https://github.com/zikani03/git-monorepo
+$ go build -o git-monorepo ./cmd/main.go
+```
 
 ## Usage
+
+> NOTE: It's currently very CPU intensive at the moment, I'm gonna look for ways to reduce CPU usage. May also be memory intensive if you use the `--in-memory` flag. I also haven't tried it on very large repos (i.e. repos with very many many commits)
 
 ### Create monorepo locally
 
@@ -25,9 +38,13 @@ $ git-monorepo init --sources https://github.com/nndi-oss/ussdproxy,gh:nndi-oss/
 
 ## IDEAS / TODO
 
-- Make Submodules instead of mangling history
-- Parallel clones
-- Create monorepo locally and push to github
+- Support "squashing-merging" - that is merge the repos without preserving fine-grained commit history
+
+- Make Git Submodules instead of mangling history
+
+- Clone repositories in parallel
+
+- Create monorepo locally and push to github (and other git hosting services)
 
 ```shell
 $ git monorepo init --preserve-history \ 
