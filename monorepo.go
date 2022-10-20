@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"os"
 	"path"
 	"sort"
 	"strings"
@@ -21,6 +22,7 @@ type Monorepo struct {
 	// done chan bool
 	Dir                  string
 	SourceRepositoryURLs []string
+	UseInMemoryStorage   bool
 }
 
 type RepositoryCommit struct {
@@ -31,6 +33,14 @@ type RepositoryCommit struct {
 func NewMonorepoFromSources(repos []string) *Monorepo {
 	return &Monorepo{
 		SourceRepositoryURLs: repos,
+		UseInMemoryStorage:   false,
+	}
+}
+
+func NewMonorepoFromSourcesInMemory(repos []string) *Monorepo {
+	return &Monorepo{
+		SourceRepositoryURLs: repos,
+		UseInMemoryStorage:   true,
 	}
 }
 
@@ -63,14 +73,34 @@ func (m *Monorepo) initWithCommitsBetween(targetDir string, fromTime, toTime tim
 
 	worktreeDir := billyfs.New(targetDir)
 
+	dirsToClean := make([]string, 0)
 	for _, urlSpec := range m.SourceRepositoryURLs {
 		sourceRepositoryUrl := makeFullUrl(urlSpec)
-		repo, err := git.Clone(memory.NewStorage(), nil, &git.CloneOptions{
-			URL: sourceRepositoryUrl,
-		})
-		if err != nil {
-			return fmt.Errorf("failed to git clone %s : %v", sourceRepositoryUrl, err)
+		var repo *git.Repository
+		var err error
+		if m.UseInMemoryStorage {
+			storage := memory.NewStorage()
+			repo, err = git.Clone(storage, nil, &git.CloneOptions{
+				URL: sourceRepositoryUrl,
+			})
+			if err != nil {
+				fmt.Println(fmt.Errorf("failed to git clone %s : %v", sourceRepositoryUrl, err))
+				return err
+			}
+		} else {
+			tmpDirName, err := os.MkdirTemp(os.TempDir(), "monorepo_")
+			if err != nil {
+				return err
+			}
+			storage := filesystem.NewStorage(billyfs.New(tmpDirName), cache.NewObjectLRUDefault())
+			repo, err = git.Clone(storage, nil, &git.CloneOptions{URL: sourceRepositoryUrl})
+			if err != nil {
+				fmt.Println(fmt.Errorf("failed to git clone %s to %s: %v", sourceRepositoryUrl, tmpDirName, err))
+				return err
+			}
+			dirsToClean = append(dirsToClean, tmpDirName)
 		}
+
 		// retrieves the branch pointed by HEAD
 		repoRef, err := repo.Head()
 		if err != nil {
@@ -163,6 +193,15 @@ func (m *Monorepo) initWithCommitsBetween(targetDir string, fromTime, toTime tim
 		})
 		if err != nil {
 			return fmt.Errorf("failed to commit files: %v", err)
+		}
+	}
+
+	// Clean up the tmp directories
+	if len(dirsToClean) > 0 {
+		for _, dirToPurge := range dirsToClean {
+			if err := os.RemoveAll(dirToPurge); err != nil {
+				fmt.Printf("failed to remove tmp directory at %s got %v\n", dirToPurge, err)
+			}
 		}
 	}
 

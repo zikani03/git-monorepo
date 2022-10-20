@@ -1,6 +1,6 @@
 module github.com/zikani03/git-monorepo
 
-go 1.17
+go 1.18
 
 require (
 	github.com/alecthomas/kong v0.5.0
