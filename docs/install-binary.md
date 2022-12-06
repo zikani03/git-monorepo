@@ -1,4 +1,5 @@
 Installation from Binaries
 ==========================
 
-NO PREBUILT BINARIES AVAILABLE, SORRY;
+
+Download from [GitHub Releases](https://github.com/zikani03/git-monorepo/releases)

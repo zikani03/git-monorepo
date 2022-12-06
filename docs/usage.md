@@ -1,6 +1,21 @@
 Usage
 =====
 
+> NOTE: It's may be very CPU intensive for large repos at the moment, I'm gonna look for ways to reduce CPU usage. May also be memory intensive if you use the `--in-memory` flag. I also haven't tried it on very large repos (i.e. repos with very many many commits)
+
+### Create monorepo locally
+
+```shell
+$ git-monorepo init --sources gh:zikani03/articulated,gh:zikani03/pakadali --target toy-projects
+```
+
+Or with full git urls:
+
+```shell
+$ git-monorepo init --sources https://github.com/nndi-oss/ussdproxy,gh:nndi-oss/ussd-whois,https://github.com/nndi-oss/dialoguss --target ussd-projects
+```
+
+
 # Command-line options
 
 ```text
