@@ -11,7 +11,7 @@ import (
 var version string = "0.0.0"
 
 type Globals struct {
-	Config  string      `help:"Location of configuration file" default:"monopore.toml" type:"path"`
+	Config  string      `help:"Location of configuration file" default:"monorepo.toml" type:"path"`
 	Debug   bool        `help:"Enable debug mode"`
 	Version VersionFlag `name:"version" help:"Show version and quit"`
 }
@@ -27,11 +27,9 @@ func (v VersionFlag) BeforeApply(app *kong.Kong, vars kong.Vars) error {
 }
 
 type InitCmd struct {
-	Daemonize       bool     `help:"Daemonize or run in foreground"`
 	Mangle          bool     `help:"Combine files from repos in one directory (not recommended!)"`
 	PreserveHistory bool     `help:"Preserve history from the repos"`
 	InMemory        bool     `help:"Clone repos in-memory instead of a temporary directory on file system"`
-	MakeSubmodules  bool     `help:"Add child repositories as submodules (not ideal!)"`
 	TargetDir       string   `name:"target" help:"The target directory to create repo in. Must not exist" type:"path"`
 	Sources         []string `help:"Source repositories with support for 'git-down' shortcuts"`
 }
@@ -57,14 +55,28 @@ func (r *InitCmd) Run(globals *Globals) error {
 	return nil
 }
 
+// MergeCmd allows users to merge other repos into existing repositories
+type MergeCmd struct {
+	PreserveHistory bool     `help:"Preserve history from the repos"`
+	TargetDir       string   `name:"target" type:"path" help:"The target repository. Must be a valid repo"`
+	Sources         []string `help:"Source repositories with support for 'git-down' shortcuts"`
+}
+
+func (r *MergeCmd) Run(globals *Globals) error {
+	repo := gitMonorepo.NewMonorepoFromSources(r.Sources)
+	err := repo.MergeSourcesInto(r.TargetDir)
+	CheckIfError(err)
+	return nil
+}
+
 type CLI struct {
 	Globals
 
-	Init InitCmd `cmd:"" help:"Initialize a monorepo from source repos"`
+	Init  InitCmd  `cmd:"" help:"Initialize a monorepo from source repos"`
+	Merge MergeCmd `cmd:"" help:"Merge existing repos into another to form a monorepo"`
 }
 
 func main() {
-
 	cli := CLI{
 		Globals: Globals{
 			Version: VersionFlag(version),
@@ -72,7 +84,7 @@ func main() {
 	}
 
 	ctx := kong.Parse(&cli,
-		kong.Name("git-monopore"),
+		kong.Name("git-monorepo"),
 		kong.Description("Make monorepos from existing repositories"),
 		kong.UsageOnError(),
 		kong.ConfigureHelp(kong.HelpOptions{
