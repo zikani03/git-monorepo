@@ -45,20 +45,19 @@ func NewMonorepoFromSourcesInMemory(repos []string) *Monorepo {
 }
 
 func makeFullUrl(spec string) string {
-	if strings.HasPrefix(spec, "gh:") {
-		return strings.ReplaceAll(spec, "gh:", "https://github.com/")
+	m := map[string]string{
+		"gh:": "https://github.com/",
+		"bb:": "https://bitbucket.org/",
+		"gl:": "https://gitlab.com/",
+		"sf:": "https://git.code.sf.net/p/",
+		"sr:": "https://git.sr.ht/",
+		"cb:": "https://codeberg.org/",
 	}
-	if strings.HasPrefix(spec, "bb:") {
-		return strings.ReplaceAll(spec, "bb:", "https://bitbucket.org/")
-	}
-	if strings.HasPrefix(spec, "gl:") {
-		return strings.ReplaceAll(spec, "gl:", "https://gitlab.com/")
-	}
-	if strings.HasPrefix(spec, "sr:") {
-		return strings.ReplaceAll(spec, "sr:", "https://git.sr.ht/")
-	}
-	if strings.HasPrefix(spec, "cb:") {
-		return strings.ReplaceAll(spec, "cb:", "https://codeberg.org/")
+
+	for prefix, url := range m {
+		if strings.HasPrefix(spec, prefix) {
+			return strings.ReplaceAll(spec, prefix, url)
+		}
 	}
 
 	return spec
@@ -122,7 +121,6 @@ func (m *Monorepo) initWithCommitsBetween(targetDir string, fromTime, toTime tim
 
 		err = cIter.ForEach(func(c *object.Commit) error {
 			repoCommit := &RepositoryCommit{RepositoryName: repositoryName, Commit: c}
-			//fmt.Println("Adding commit", repoCommit)
 			commitList = append(commitList, repoCommit)
 			return nil
 		})
